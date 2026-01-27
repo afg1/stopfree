@@ -1,14 +1,7 @@
 use pyo3::prelude::*;
 use rayon::prelude::*;
-use regex::Regex;
-use lazy_static::lazy_static;
 
-lazy_static! {
-    pub static ref TAA_STOP: Regex = Regex::new(r"TAA").unwrap();
-    pub static ref TAG_STOP: Regex = Regex::new(r"TAG").unwrap();
-    pub static ref TGA_STOP: Regex = Regex::new(r"TGA").unwrap();
-}
-
+#[inline]
 fn reverse_complement(seq: &str) -> String {
     seq.chars()
         .rev()
