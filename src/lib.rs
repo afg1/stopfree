@@ -9,33 +9,53 @@ lazy_static! {
     pub static ref TGA_STOP: Regex = Regex::new(r"TGA").unwrap();
 }
 
+fn reverse_complement(seq: &str) -> String {
+    seq.chars()
+        .rev()
+        .map(|c| match c {
+            'A' | 'a' => 'T',
+            'T' | 't' => 'A',
+            'G' | 'g' => 'C',
+            'C' | 'c' => 'G',
+            other => other,  // handle N, etc.
+        })
+        .collect()
+}
+
+
 fn calculate_stop_free_run_single(seq: &str) ->usize {
-    let rev_seq = seq.chars().rev().collect::<String>();
-
-    let frames = [
-        &seq[0..],
-        &seq[1.min(seq.len())..],
-        &seq[2.min(seq.len())..],
-        &rev_seq[0..],
-        &rev_seq[1.min(rev_seq.len())..],
-        &rev_seq[2.min(rev_seq.len())..],
-    ];
-
-    let stops: Vec<&Regex> = vec![&TAA_STOP, &TAG_STOP, &TGA_STOP];
-    frames
-        .par_iter().map(|frame| 
-            stops
-            .iter()
-            .map(|x| x.find(&frame))
-            .filter_map(|x| x.map(|y| y.end()))
-            .collect::<Vec<usize>>()
-            .into_iter()
-            .max()
-            .unwrap_or(frame.len())
-        ).collect::<Vec<usize>>()
-        .into_iter()
-        .max()
-        .unwrap_or(seq.len())
+let seq_upper: String = seq.to_uppercase();
+    let rc = reverse_complement(&seq_upper);
+    
+    let sequences = [&seq_upper, &rc];
+    let stop_codons = ["TAA", "TAG", "TGA"];
+    
+    let mut max_length = 0;
+    
+    for sequence in sequences {
+        for frame in 0..3 {
+            let mut region_start = frame;
+            let mut i = frame;
+            
+            while i + 3 <= sequence.len() {
+                let codon = &sequence[i..i + 3];
+                
+                if stop_codons.contains(&codon) {
+                    let region_length = i - region_start;
+                    max_length = max_length.max(region_length);
+                    region_start = i + 3;
+                }
+                
+                i += 3;
+            }
+            
+            // Final region (after last stop, or entire frame if no stops)
+            let final_region_length = i - region_start;
+            max_length = max_length.max(final_region_length);
+        }
+    }
+    
+    max_length
 }
 
 #[pyfunction]
