@@ -151,7 +151,7 @@ jobs:
           name: wheels-sdist
           path: dist
 
-release:
+  release:
     name: Release
     runs-on: ubuntu-latest
     environment: pypi_publishing
