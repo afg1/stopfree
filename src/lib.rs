@@ -78,12 +78,25 @@ fn calculate_stop_free_runs_with_ids(
         .collect())
 }
 
+#[pyfunction]
+fn calculate_stop_free_run_with_ratio(sequences: Vec<(String,String)>) -> PyResult<Vec<(String,usize, f64)>> {
+    Ok(sequences
+        .par_iter()
+        .map(|(id, seq)| {
+            let length = calculate_stop_free_run_single(seq);
+            let ratio = if seq.is_empty() { 0.0 } else { length as f64 / seq.len() as f64 };
+            (id.clone(), length, ratio)
+        })
+        .collect())
+}
+
 
 /// A Rust implementation of stopFree
 #[pymodule]
 fn stopfree(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(calculate_stop_free_run, m)?)?;
     m.add_function(wrap_pyfunction!(calculate_stop_free_runs_with_ids, m)?)?;
+    m.add_function(wrap_pyfunction!(calculate_stop_free_run_with_ratio, m)?)?;
     Ok(())
 }
 
