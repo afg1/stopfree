@@ -151,26 +151,25 @@ jobs:
           name: wheels-sdist
           path: dist
 
-  release:
+release:
     name: Release
     runs-on: ubuntu-latest
     environment: pypi_publishing
     if: ${{ startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch' }}
     needs: [linux, musllinux, windows, macos, sdist]
     permissions:
-      # Use to sign the release artifacts
       id-token: write
-      # Used to upload release artifacts
       contents: write
-      # Used to generate artifact attestation
       attestations: write
     steps:
       - uses: actions/download-artifact@v4
         with:
+          pattern: wheels-*
           path: dist
+          merge-multiple: true  # This flattens the structure
       - name: Generate artifact attestation
         uses: actions/attest-build-provenance@v2
         with:
-          subject-path: 'dist/wheels-*/*'
+          subject-path: 'dist/*'
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
