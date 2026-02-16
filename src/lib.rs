@@ -15,7 +15,7 @@ fn reverse_complement(seq: &str) -> String {
         .collect()
 }
 
-/// Calculate the longest stop-free run in a single reading frame
+/// Calculate the longest stop-free run in a single reading frame in codons
 #[inline]
 fn longest_stop_free_in_frame(seq: &str, frame: usize) -> usize {
     let stop_codons = ["TAA", "TAG", "TGA"];
@@ -36,10 +36,11 @@ fn longest_stop_free_in_frame(seq: &str, frame: usize) -> usize {
     }
 
     // Final region (after last stop, or entire frame if no stops)
-    let final_region_length = i - region_start;
+    let final_region_length = (i - region_start) / 3;
     max_length.max(final_region_length)
 }
 
+/// Calculate the longest stop-free run in a given sequence, in codons
 #[inline]
 fn longest_stop_free_in_sequence(seq: &str) -> usize {
     (0..3)
