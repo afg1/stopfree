@@ -1,5 +1,7 @@
 # stopfree
 
+[![Rust Tests](https://github.com/afg1/stopfree/actions/workflows/cargo-test.yml/badge.svg)](https://github.com/afg1/stopfree/actions/workflows/cargo-test.yml)
+
 This is a rust implementation of the stopFree coding potential tool defined in [Evaluating computational tools for protein-coding sequence detection: Are they up to the task?](https://www.biorxiv.org/content/10.1101/2024.05.16.594598v3.full.pdf)
 
 It measures the longest stop codon free length of sequence in each of the 6 possible reading frames.
