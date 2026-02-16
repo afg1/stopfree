@@ -91,6 +91,32 @@ fn calculate_stop_free_run_with_ratio(sequences: Vec<(String,String)>) -> PyResu
         .collect())
 }
 
+#[pyfunction]
+fn calculate_gc_content(sequences: Vec<(String, String)>) -> PyResult<Vec<(String, f64)>> {
+    Ok(sequences
+        .par_iter()
+        .map(|(id, seq)| {
+            let gc_count = seq.chars().filter(|&c| c == 'G' || c == 'C' || c == 'g' || c == 'c').count();
+            let gc_content = if seq.is_empty() { 0.0 } else { gc_count as f64 / seq.len() as f64 };
+            (id.clone(), gc_content)
+        })
+        .collect())
+}
+
+#[pyfunction]
+fn calculate_run_probability(run_lengths: Vec<(String, i32)>, gc_contents: Vec<(String, f64)>) -> PyResult<Vec<(String,  f64)>> {
+    let gc_map: std::collections::HashMap<String, f64> = gc_contents.into_iter().collect();
+    
+    Ok(run_lengths
+        .par_iter()
+        .map(|(id, length)| {
+            let gc_content = gc_map.get(id).cloned().unwrap_or(0.0);
+            let probability = (1.0 - (((1.0 - gc_content).powi(2)*(1.0 + gc_content))/ 8.0) ).powi(*length); 
+            (id.clone(), probability)
+        })
+        .collect())
+}
+
 
 /// A Rust implementation of stopFree
 #[pymodule]
@@ -335,4 +361,36 @@ mod tests {
         assert_eq!(results[0], ("s1".to_string(), 1));
         assert_eq!(results[1], ("s2".to_string(), 3));
     }
+
+    #[test]
+    fn test_calculate_gc_content_50pc() {
+        let tuples = vec![
+            ("s1".to_string(), "ATGC".to_string()),
+        ];
+        let results = calculate_gc_content(tuples).unwrap();
+        assert_eq!(results[0], ("s1".to_string(), 0.5));
+    }
+
+    #[test]
+    fn test_calculate_gc_content_0pc() {
+        let tuples = vec![
+            ("s1".to_string(), "ATAT".to_string()),
+        ];
+        let results = calculate_gc_content(tuples).unwrap();
+        assert_eq!(results[0], ("s1".to_string(), 0.0));
+    }
+
+    #[test]
+    fn test_calculate_run_probability_k60_gc70pc(){
+        // let tuple = vec![("s1".to_string(), "ATAGCGCGCG".to_string())];
+        let run_lengths = vec![("s1".to_string(), 62)];
+        let gc_contents = vec![("s1".to_string(), 0.50)];
+        let results = calculate_run_probability(run_lengths, gc_contents).unwrap();
+        println!("{:?}", results);
+        println!("{}", (results[0].1 - 0.05096727139795341).abs());
+
+        // Have to check for difference form machine epsilon for 64-bit floating point
+        assert!((results[0].1 - 0.05096727139795341).abs() < 1.11e-16);
+    }
+
 }
