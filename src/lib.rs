@@ -124,6 +124,8 @@ fn stopfree(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(calculate_stop_free_run, m)?)?;
     m.add_function(wrap_pyfunction!(calculate_stop_free_runs_with_ids, m)?)?;
     m.add_function(wrap_pyfunction!(calculate_stop_free_run_with_ratio, m)?)?;
+    m.add_function(wrap_pyfunction!(calculate_gc_content, m)?)?;
+    m.add_function(wrap_pyfunction!(calculate_run_probability, m)?)?;
     Ok(())
 }
 
