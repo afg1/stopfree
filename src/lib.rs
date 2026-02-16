@@ -27,7 +27,7 @@ fn longest_stop_free_in_frame(seq: &str, frame: usize) -> usize {
         let codon = &seq[i..i + 3];
 
         if stop_codons.contains(&codon) {
-            let region_length = i - region_start;
+            let region_length = (i - region_start)/3;
             max_length = max_length.max(region_length);
             region_start = i + 3;
         }
